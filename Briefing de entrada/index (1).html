@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Briefing Curiosa</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="robots" content="noindex">
+<meta name="description" content="Briefing de entrada da Curiosa House: conte o seu desafio antes da nossa conversa.">
+<link rel="icon" type="image/png" href="assets/favicon-luneta.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+/* Aileron (secundária da IDV). Onde a fonte não carregar, cai para Manrope. */
+@font-face{font-family:"Aileron";src:url("https://cdn.jsdelivr.net/npm/@fontsource/aileron/files/aileron-latin-400-normal.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Aileron";src:url("https://cdn.jsdelivr.net/npm/@fontsource/aileron/files/aileron-latin-600-normal.woff2") format("woff2");font-weight:600;font-display:swap}
+
+/* Layout: uma pergunta por tela, como uma conversa à noite no observatório. Fundo tinta, texto creme, blobs da IDV. */
+:root{
+  --ink:#06060b; --ink-2:#0c0c16; --ink-3:#13131f;
+  --cream:#f3ecdf; --cream-dim:rgba(243,236,223,.70); --cream-faint:rgba(243,236,223,.46);
+  --line:rgba(243,236,223,.14); --line-2:rgba(243,236,223,.26); --surface:rgba(255,255,255,.04); --surface-2:rgba(255,255,255,.07);
+  --blue:#2f5bea; --violet:#7a5cf2; --lilac:#c9bcff; --ok:#7fe0b0; --err:#ff9a9a;
+  --serif:"Lora",Georgia,"Times New Roman",serif;
+  --sans:"Aileron","Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:18px; --ease:cubic-bezier(.2,.7,.2,1);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+html{background:var(--ink)}
+body{background:var(--ink);color:var(--cream);font-family:var(--sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:90;opacity:.07;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:61;background:var(--ink)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+::selection{background:var(--violet);color:#fff}
+:focus-visible{outline:2px solid var(--lilac);outline-offset:3px;border-radius:8px}
+
+.blob{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;animation:drift 20s ease-in-out infinite}
+.blob.v{width:620px;height:420px;top:-160px;right:-200px;background:radial-gradient(closest-side,var(--violet),transparent);opacity:.55}
+.blob.b{width:560px;height:380px;bottom:-200px;left:-220px;background:radial-gradient(closest-side,var(--blue),transparent);opacity:.45;animation-direction:reverse;animation-duration:28s}
+@keyframes drift{0%,100%{transform:translate(0,0) rotate(-20deg)}50%{transform:translate(30px,-24px) rotate(-12deg)}}
+
+/* topo */
+.top{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;z-index:60;background:rgba(6,6,11,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.top-in{max-width:880px;margin:0 auto;height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--cream)}
+.brand img{height:26px;width:auto}
+.brand span{font-family:var(--serif);font-style:italic;font-size:21px;letter-spacing:-.01em}
+.brand small{font-family:var(--sans);font-style:normal;font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--cream-dim);margin-left:4px}
+.count{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--cream-dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+.count b{color:var(--cream);font-weight:400}
+.bar{position:absolute;left:0;bottom:-1px;height:2px;width:100%;background:transparent}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--violet),var(--lilac));transition:width .5s var(--ease)}
+
+/* palco */
+.stage{position:relative;z-index:2;min-height:100%;display:flex;flex-direction:column;
+  padding-top:calc(64px + env(safe-area-inset-top,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.slot{flex:1;display:flex;align-items:center;justify-content:center;padding-block:48px 120px}
+.q{width:100%;max-width:680px;min-width:0}
+.q.enter{animation:inUp .5s var(--ease) both}
+.q.enter-back{animation:inDown .5s var(--ease) both}
+@keyframes inUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+@keyframes inDown{from{opacity:0;transform:translateY(-26px)}to{opacity:1;transform:none}}
+
+.sec{display:inline-flex;align-items:center;gap:10px;font-size:11.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--lilac);font-weight:600}
+.sec::before{content:"";width:22px;height:1px;background:currentColor;opacity:.7}
+h1,h2{font-family:var(--serif);font-weight:400;letter-spacing:-.02em;text-wrap:balance}
+h1{font-size:clamp(38px,6.4vw,66px);line-height:1.02;margin:22px 0 22px}
+h1 em,h2 em{font-style:italic;color:var(--lilac)}
+h2{font-size:clamp(28px,4.4vw,42px);line-height:1.12;margin:16px 0 0}
+.help{color:var(--cream-dim);font-size:16px;margin-top:12px;max-width:58ch}
+.lead{color:var(--cream-dim);font-size:clamp(17px,1.8vw,19px);max-width:54ch;font-family:var(--serif)}
+.req-tag{font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--cream-faint);margin-left:6px;vertical-align:middle;white-space:nowrap}
+
+/* campos */
+.fields{display:grid;gap:20px;margin-top:32px}
+.field{display:flex;flex-direction:column;gap:8px;min-width:0}
+.field label{font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--cream-dim);font-weight:600}
+.inp-wrap{display:flex;align-items:center;gap:6px;border-bottom:1.5px solid var(--line-2);transition:border-color .2s}
+.inp-wrap:focus-within{border-color:var(--lilac)}
+.inp-wrap.bad{border-color:var(--err)}
+.inp-wrap .pre{font-family:var(--serif);font-size:24px;color:var(--cream-faint)}
+input,textarea{width:100%;min-width:0;font-family:var(--serif);font-size:clamp(21px,2.6vw,26px);color:var(--cream);background:transparent;border:0;outline:0;padding:10px 0 12px;caret-color:var(--lilac)}
+input::placeholder,textarea::placeholder{color:rgba(243,236,223,.30)}
+input[type=date]{font-family:var(--sans);font-size:20px}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.9);cursor:pointer}
+textarea{resize:none;min-height:56px;line-height:1.4;overflow:hidden}
+.err{color:var(--err);font-size:14.5px;min-height:1.3em;margin-top:2px}
+.err:empty{min-height:0}
+
+/* opções */
+.opts{display:grid;gap:10px;margin-top:30px}
+.opt{display:flex;align-items:center;gap:14px;text-align:left;width:100%;min-height:56px;padding:13px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface);
+  transition:border-color .2s,background .2s,transform .2s}
+.opt:hover{border-color:var(--line-2);background:var(--surface-2)}
+.opt:active{transform:scale(.99)}
+.opt .k{flex:0 0 auto;width:28px;height:28px;border-radius:8px;border:1px solid var(--line-2);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--cream-dim);letter-spacing:0}
+.opt .t{flex:1;min-width:0;font-size:17px}
+.opt .chk{flex:0 0 auto;width:20px;height:20px;opacity:0;color:var(--ink);transition:opacity .2s}
+.opt[aria-checked="true"]{border-color:var(--lilac);background:rgba(122,92,242,.18)}
+.opt[aria-checked="true"] .k{background:var(--lilac);border-color:var(--lilac);color:var(--ink)}
+.opt[aria-checked="true"] .chk{opacity:1;color:var(--lilac)}
+.opt.flash{animation:flash .32s}
+@keyframes flash{50%{background:rgba(201,188,255,.28)}}
+.other{margin-top:4px;padding-left:4px}
+
+/* cards de interesse */
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:30px}
+.card{position:relative;overflow:hidden;text-align:left;border:1px solid var(--line);border-radius:20px;padding:20px 20px 22px;background:var(--ink-2);display:flex;flex-direction:column;gap:8px;min-height:150px;
+  transition:border-color .25s,transform .3s var(--ease),background .25s;isolation:isolate}
+.card::after{content:"";position:absolute;width:240px;height:160px;right:-90px;bottom:-90px;border-radius:50%;filter:blur(44px);background:radial-gradient(closest-side,var(--violet),transparent);opacity:0;transition:opacity .3s;z-index:-1}
+.card:hover{border-color:var(--line-2);transform:translateY(-3px)}
+.card:hover::after{opacity:.5}
+.card[aria-checked="true"]{border-color:var(--lilac);background:var(--ink-3)}
+.card[aria-checked="true"]::after{opacity:.85}
+.card .ct{font-family:var(--serif);font-size:22px;line-height:1.15;letter-spacing:-.01em}
+.card .cd{color:var(--cream-dim);font-size:15px;line-height:1.5}
+.card .ck{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--cream-faint);font-weight:600}
+.card.wide{grid-column:1/-1;min-height:0}
+@media (max-width:640px){.cards{grid-template-columns:1fr}.card{min-height:0}}
+
+/* ações */
+.actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:34px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;font-weight:600;font-size:13px;letter-spacing:.16em;text-transform:uppercase;padding:16px 26px;border-radius:999px;background:var(--cream);color:var(--ink);
+  transition:transform .25s,box-shadow .25s,opacity .2s;white-space:nowrap}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 40px -10px rgba(122,92,242,.8)}
+.btn[disabled]{opacity:.55;cursor:progress;transform:none;box-shadow:none}
+.btn .arr{transition:transform .25s}
+.btn:hover .arr{transform:translateX(4px)}
+.btn.ghost{background:transparent;color:var(--cream);border:1px solid var(--line-2)}
+.hint{font-size:13px;color:var(--cream-faint)}
+.hint kbd{font-family:var(--sans);font-size:12px;border:1px solid var(--line-2);border-radius:6px;padding:2px 6px;color:var(--cream-dim)}
+@media (hover:none){.hint.kb{display:none}}
+
+/* rodapé de navegação */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:55;pointer-events:none;
+  padding:0 max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.nav-in{max-width:880px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.navbtn{pointer-events:auto;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(12,12,22,.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--cream-dim)}
+.navbtn:hover{color:var(--cream);border-color:var(--line-2)}
+.navbtn[hidden]{display:none}
+.saved{pointer-events:none;font-size:12px;color:var(--cream-faint);opacity:0;transition:opacity .4s}
+.saved.on{opacity:1}
+
+/* intro */
+.intro-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}
+.chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--cream-dim);background:var(--surface)}
+.chip svg{width:14px;height:14px;color:var(--lilac)}
+.demo{margin-top:22px;font-size:13.5px;color:var(--cream-dim);border:1px dashed var(--line-2);border-radius:12px;padding:10px 14px;max-width:54ch}
+.resume{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:15px;color:var(--cream-dim)}
+.linkbtn{color:var(--lilac);text-decoration:underline;text-underline-offset:3px;font-size:15px}
+
+/* revisão */
+.review{margin-top:28px;display:grid;gap:22px}
+.rv-sec h3{font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--lilac);font-weight:600;margin-bottom:8px}
+.rv-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 14px;padding:12px 0;border-top:1px solid var(--line)}
+.rv-q{font-size:13.5px;color:var(--cream-dim);grid-column:1}
+.rv-a{font-family:var(--serif);font-size:18px;grid-column:1;word-break:break-word;white-space:pre-wrap}
+.rv-a.empty{color:var(--cream-faint);font-style:italic}
+.rv-edit{grid-column:2;grid-row:1/span 2;align-self:center;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--cream-dim);border:1px solid var(--line);border-radius:999px;padding:8px 12px;min-height:36px}
+.rv-edit:hover{color:var(--cream);border-color:var(--line-2)}
+.status{margin-top:14px;font-size:15px;color:var(--err);min-height:1.2em}
+.status a{color:var(--cream)}
+
+/* fim */
+.done-mark{width:92px;height:92px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,rgba(122,92,242,.55),rgba(47,91,234,.2) 60%,transparent 72%);margin-bottom:6px}
+.done-mark svg{width:42px;height:42px;color:var(--cream)}
+.contacts{display:grid;gap:10px;margin-top:30px;max-width:520px}
+.contacts li{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line);border-radius:16px;padding:14px 16px;background:var(--surface);flex-wrap:wrap}
+.contacts .k{display:block;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--cream-dim)}
+.contacts .v{font-family:var(--serif);font-size:19px;user-select:all;word-break:break-word}
+.mini{border:1px solid var(--line-2);border-radius:999px;padding:8px 13px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--cream);text-decoration:none;min-height:36px;display:inline-flex;align-items:center}
+.mini:hover{background:var(--cream);color:var(--ink)}
+
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translate(-50%,160%);background:var(--cream);color:var(--ink);padding:11px 18px;border-radius:999px;font-size:14px;font-weight:600;z-index:95;transition:transform .35s var(--ease)}
+.toast.on{transform:translate(-50%,0)}
+
+@media (max-width:560px){
+  body{font-size:16px}
+  .slot{padding-block:32px 110px;align-items:flex-start}
+  .brand small{display:none}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<div class="blob v" aria-hidden="true"></div>
+<div class="blob b" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="https://curiosahouse.com.br" target="_blank" rel="noopener" aria-label="Curiosa House">
+      <img src="assets/logo-reduzido-creme.png" alt="" onerror="this.remove()">
+      <span>Curiosa<small>house</small></span>
+    </a>
+    <div class="count" id="count" aria-live="polite"></div>
+  </div>
+  <div class="bar" aria-hidden="true"><i id="barFill"></i></div>
+</header>
+
+<main class="stage">
+  <div class="slot"><section class="q" id="q" aria-live="polite"></section></div>
+</main>
+
+<nav class="nav" aria-label="Navegação do briefing">
+  <div class="nav-in">
+    <button class="navbtn" id="backBtn" type="button" hidden>
+      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>Voltar
+    </button>
+    <span class="saved" id="saved">Rascunho salvo neste aparelho</span>
+  </div>
+</nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ===================== CONFIG ===================== */
+/* Cole aqui a URL do App da Web do Apps Script (termina em /exec). Enquanto estiver assim, a página roda em modo demonstração. */
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbxDz_4mXsPi6Dr6k_RscyAY9e5mNAlU3NNJk8LQYuhtODwFwtf56VnIlFQrV221dnGq/exec";
+const WHATS = "5519981460819", WHATS_TXT = "(19) 98146-0819", MAIL = "officecuriosa@gmail.com";
+const DRAFT_KEY = "curiosa-briefing-v1";
+const LIVE = /^https:\/\/script\.google\.com\//.test(ENDPOINT);
+
+/* ===================== PERGUNTAS ===================== */
+const is = v => a => a.interesse === v;
+const OUTRO = "Outro";
+const Q = [
+  {id:"intro", type:"intro"},
+
+  {id:"nome", sec:"Sobre você", type:"text", label:"Pra começar, qual é o seu nome?", ph:"Seu nome", req:true, auto:"name"},
+  {id:"contato", sec:"Sobre você", type:"group", label:a=>`Prazer, ${first(a.nome)}. Onde a gente te encontra?`, help:"É por aqui que a Jami vai te chamar para marcar a conversa.",
+    fields:[{id:"email",label:"E-mail",kind:"email",ph:"voce@empresa.com",req:true,auto:"email"},{id:"whatsapp",label:"WhatsApp",kind:"tel",ph:"(19) 90000-0000",req:true,auto:"tel"}]},
+  {id:"empresa_g", sec:"Sua empresa", type:"group", label:"Agora, sobre a empresa.",
+    fields:[{id:"empresa",label:"Empresa ou marca",ph:"Nome da empresa",req:true,auto:"organization"},{id:"cargo",label:"Seu papel na empresa",ph:"Ex.: sócia, gerente de marketing",auto:"organization-title"},{id:"segmento",label:"O que a empresa faz",ph:"Ex.: escola de negócios, indústria de alimentos"}]},
+  {id:"perfis", sec:"Sua empresa", type:"group", label:"Quais são os perfis da empresa?", help:"A gente dá uma olhada antes da reunião. Preencha o que tiver.",
+    fields:[{id:"instagram",label:"Instagram",ph:"suaempresa",pre:"@"},{id:"site",label:"Site",ph:"suaempresa.com.br",kind:"url"},{id:"outros_perfis",label:"LinkedIn ou outro perfil",ph:"Link ou @"}]},
+  {id:"origem", sec:"Sua empresa", type:"choice", label:"Como você chegou até a Curiosa?", options:["Indicação","Instagram","LinkedIn","Num evento","Google",OUTRO], other:true},
+
+  {id:"interesse", sec:"O que você precisa", type:"cards", label:"Do que você está precisando agora?", help:"Escolha o que mais se aproxima. Se for mais de uma coisa, fique com a principal e conte o resto no final.", req:true,
+    options:[
+      {v:"evento", k:"Eventos", t:"Divulgação de ponta a ponta para o meu evento", d:"Do pré ao pós: público aquecido antes, ativação e captação no dia, conteúdo que continua vendendo depois."},
+      {v:"360", k:"Estratégia", t:"Estratégia de marketing 360", d:"Redes, mídia paga, e-mail, WhatsApp, site e vendas contando a mesma história, com metas e dados guiando as decisões."},
+      {v:"campanha", k:"Criação", t:"Campanha publicitária", d:"Conceito criativo, manifesto e atos planejados para mover um número: lembrança de marca, leads ou vendas."},
+      {v:"gtm", k:"Lançamento", t:"Go to market", d:"Levar um produto ou serviço novo ao mercado com pesquisa, posicionamento, mensagem e time comercial preparado para vender."},
+      {v:"outro", k:"Outro", t:"Outra coisa, ou ainda não sei", d:"Tudo bem. Você conta com as suas palavras e a gente descobre junto.", wide:true}
+    ]},
+
+  /* ---- Evento ---- */
+  {id:"ev_nome", sec:"Seu evento", show:is("evento"), type:"text", label:"Qual é o nome do evento?", ph:"Nome do evento", req:true},
+  {id:"ev_tipo", sec:"Seu evento", show:is("evento"), type:"choice", label:"Que tipo de evento é?", req:true, other:true,
+    options:["Feira ou expo","Summit, congresso ou conferência","Evento corporativo ou de relacionamento","Show ou festival","Curso, workshop ou imersão",OUTRO]},
+  {id:"ev_quando", sec:"Seu evento", show:is("evento"), type:"group", label:"Quando e onde ele acontece?",
+    fields:[{id:"ev_data",label:"Data de início",kind:"date",req:true},{id:"ev_local",label:"Cidade e local",ph:"Ex.: São Paulo, Expo Center Norte",req:true}]},
+  {id:"ev_edicao", sec:"Seu evento", show:is("evento"), type:"choice", label:"É a primeira edição?", req:true, options:["Sim, é a primeira","Não, já teve edições anteriores"]},
+  {id:"ev_anterior", sec:"Seu evento", show:a=>a.interesse==="evento"&&/^Não/.test(a.ev_edicao||""), type:"textarea", label:"Como foi a última edição?", help:"Público, vendas, o que funcionou e o que você mudaria. Números ajudam muito.", ph:"Ex.: 1.800 inscritos, 60% vieram de indicação..."},
+  {id:"ev_qtd", sec:"Seu evento", show:is("evento"), type:"choice", label:"Quantas pessoas você espera?", req:true, options:["Até 200","De 200 a 1.000","De 1.000 a 5.000","Mais de 5.000"]},
+  {id:"ev_perfil", sec:"Seu evento", show:is("evento"), type:"textarea", label:"E quem são essas pessoas?", help:"Cargo, setor, região, o que elas vão buscar no evento.", ph:"Ex.: gestores de RH de empresas médias do interior de SP", req:true},
+  {id:"ev_objetivos", sec:"Seu evento", show:is("evento"), type:"multi", label:"O que a divulgação precisa entregar?", help:"Marque quantas quiser.", req:true, other:true,
+    options:["Vender ingressos ou inscrições","Atrair expositores e patrocinadores","Gerar leads para o negócio","Fortalecer a marca do evento","Engajar uma comunidade",OUTRO]},
+  {id:"ev_fases", sec:"Seu evento", show:is("evento"), type:"multi", label:"Em que fases você quer a Curiosa junto?", help:"Marque quantas quiser.", req:true,
+    options:["Pré-evento: aquecer e vender","Durante: ativação, cobertura e captação","Pós-evento: conteúdo e relacionamento"]},
+  {id:"ev_pronto", sec:"Seu evento", show:is("evento"), type:"multi", label:"O que já existe hoje?", help:"Marque quantas quiser.", none:"Nada disso ainda",
+    options:["Site ou landing page","Identidade visual do evento","Redes sociais do evento","Base de contatos","Verba de mídia definida","Nada disso ainda"]},
+
+  /* ---- Marketing 360 ---- */
+  {id:"m_momento", sec:"Marketing 360", show:is("360"), type:"choice", label:"Em que momento a empresa está?", req:true,
+    options:["Começando agora","Crescendo e precisando organizar","Estável, querendo escalar","Mudando de posicionamento"]},
+  {id:"m_canais", sec:"Marketing 360", show:is("360"), type:"multi", label:"Quais canais a empresa usa hoje?", help:"Marque quantas quiser.", none:"Nenhum ainda",
+    options:["Instagram","LinkedIn","TikTok","YouTube","Site ou blog","E-mail marketing","WhatsApp","Mídia paga","Eventos","Imprensa","Ponto de venda ou offline","Nenhum ainda"]},
+  {id:"m_quem", sec:"Marketing 360", show:is("360"), type:"choice", label:"Quem cuida do marketing hoje?", req:true,
+    options:["Um time interno","Uma agência","Freelancers","Eu, no meio da correria","Ninguém, por enquanto"]},
+  {id:"m_dor", sec:"Marketing 360", show:is("360"), type:"choice", label:"Qual frase mais parece com o seu dia a dia?", req:true, other:true,
+    options:["Pouca gente conhece a marca","Chegam contatos, mas poucos compram","Cada canal fala uma coisa","Não sei o que dá resultado","Falta tempo e gente para executar",OUTRO]},
+  {id:"m_medicao", sec:"Marketing 360", show:is("360"), type:"choice", label:"Vocês acompanham os resultados do marketing?", req:true,
+    options:["Sim, com metas e dashboard","Mais ou menos, olhamos de vez em quando","Ainda não"]},
+  {id:"m_meta", sec:"Marketing 360", show:is("360"), type:"textarea", label:"Onde você quer estar daqui a 6 meses?", help:"Se tiver um número, melhor ainda: faturamento, leads, clientes novos.", ph:"Ex.: dobrar os leads qualificados do site", req:true},
+
+  /* ---- Campanha ---- */
+  {id:"c_objetivo", sec:"Sua campanha", show:is("campanha"), type:"choice", label:"O que essa campanha precisa mover?", req:true, other:true,
+    options:["Lembrança de marca","Geração de leads","Vendas ou matrículas","Lançamento de produto","Reposicionamento de marca",OUTRO]},
+  {id:"c_escopo", sec:"Sua campanha", show:is("campanha"), type:"choice", label:"A campanha é sobre o quê?", req:true, options:["A marca como um todo","Um produto, curso ou linha específica"]},
+  {id:"c_produto", sec:"Sua campanha", show:a=>a.interesse==="campanha"&&/^Um produto/.test(a.c_escopo||""), type:"text", label:"Qual produto, curso ou linha?", ph:"Nome e uma frase sobre ele", req:true},
+  {id:"c_ideia", sec:"Sua campanha", show:is("campanha"), type:"choice", label:"Como está a ideia hoje?", req:true,
+    options:["Começando do zero","Tenho uma ideia, preciso desenvolver","Já tenho o conceito, preciso de execução e mídia"]},
+  {id:"c_canais", sec:"Sua campanha", show:is("campanha"), type:"multi", label:"Onde você imagina essa campanha?", help:"Marque quantas quiser.", none:"Ainda não sei",
+    options:["Redes sociais","Mídia paga digital","Influenciadores","Outdoor e mídia exterior","TV ou rádio","Ponto de venda","Eventos","Ainda não sei"]},
+  {id:"c_periodo", sec:"Sua campanha", show:is("campanha"), type:"text", label:"Quando ela precisa estar no ar?", ph:"Ex.: de março a maio de 2027", req:true},
+  {id:"c_refs", sec:"Sua campanha", show:is("campanha"), type:"textarea", label:"Tem alguma campanha que você admira?", help:"De qualquer marca. Conta o que chamou a sua atenção. Pode pular.", ph:"Nome da campanha ou link"},
+
+  /* ---- Go to market ---- */
+  {id:"g_produto", sec:"Go to market", show:is("gtm"), type:"textarea", label:"O que vocês vão lançar?", help:"Em poucas linhas: o que é e que problema resolve.", req:true},
+  {id:"g_estagio", sec:"Go to market", show:is("gtm"), type:"choice", label:"Em que estágio está?", req:true,
+    options:["Ainda é uma ideia","Protótipo ou MVP","Pronto para lançar","Já lançado, mas não decolou"]},
+  {id:"g_mercado", sec:"Go to market", show:is("gtm"), type:"choice", label:"Para quem vocês vendem?", req:true, options:["Empresas (B2B)","Consumidor final (B2C)","Os dois"]},
+  {id:"g_cliente", sec:"Go to market", show:is("gtm"), type:"textarea", label:"Quem é o cliente ideal?", help:"Cargo, tamanho da empresa, perfil. O que você souber já ajuda.", req:true},
+  {id:"g_tem", sec:"Go to market", show:is("gtm"), type:"multi", label:"O que já está definido?", help:"Marque quantas quiser.", none:"Nada disso ainda",
+    options:["Pesquisa de mercado","Cliente ideal ou persona","Posicionamento e mensagem","Preço","Time comercial","Materiais de venda","Nada disso ainda"]},
+  {id:"g_data", sec:"Go to market", show:is("gtm"), type:"text", label:"Quando é o lançamento?", ph:"Ex.: abril de 2027, ou ainda sem data", req:true},
+  {id:"g_conc", sec:"Go to market", show:is("gtm"), type:"textarea", label:"Quem são os concorrentes ou as alternativas?", help:"O que o cliente usa hoje no lugar do seu produto. Pode pular."},
+
+  /* ---- Outro ---- */
+  {id:"o_desafio", sec:"Seu desafio", show:is("outro"), type:"textarea", label:"Conta com as suas palavras: qual é o desafio?", help:"Sem formalidade. Escreva como contaria num café.", req:true},
+  {id:"o_tentou", sec:"Seu desafio", show:is("outro"), type:"textarea", label:"O que já foi tentado até aqui?", help:"Pode pular se ainda não começou."},
+
+  /* ---- Fechamento ---- */
+  {id:"f_prazo", sec:"Prazo e investimento", show:a=>!!a.interesse, type:"choice", label:"Quando você precisa começar?", req:true,
+    options:["O quanto antes","No próximo mês","Em 2 a 3 meses","Ainda sem data"]},
+  {id:"f_invest", sec:"Prazo e investimento", show:a=>!!a.interesse, type:"choice", label:"Qual é o investimento previsto para o projeto?", help:"Ajuda a desenhar uma proposta realista. Não é compromisso.", req:true,
+    options:["Até R$ 5 mil","De R$ 5 mil a R$ 15 mil","De R$ 15 mil a R$ 40 mil","Acima de R$ 40 mil","Ainda não definimos"]},
+  {id:"f_decisor", sec:"Prazo e investimento", show:a=>!!a.interesse, type:"choice", label:"Quem decide a contratação?", req:true,
+    options:["Eu","Eu e mais alguém (sócio ou diretoria)","Um comitê ou outra área"]},
+  {id:"f_sucesso", sec:"Prazo e investimento", show:a=>!!a.interesse, type:"textarea", label:"Daqui a alguns meses, o que faria você dizer que valeu a pena?", ph:"Ex.: casa cheia e 300 leads qualificados para o time comercial", req:true},
+  {id:"f_extra", sec:"Prazo e investimento", show:a=>!!a.interesse, type:"textarea", label:"Mais alguma coisa que a gente precisa saber antes da conversa?", help:"Pode pular."},
+
+  {id:"review", type:"review"},
+  {id:"done", type:"done"}
+];
+const INTEREST_NAME = {evento:"Divulgação de ponta a ponta para evento","360":"Estratégia de marketing 360",campanha:"Campanha publicitária",gtm:"Go to market",outro:"Outro / ainda não sei"};
+
+/* ===================== ESTADO ===================== */
+let A = {}, cur = "intro", dir = 1, hist = [];
+const $ = (s,el=document)=>el.querySelector(s);
+const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const first = n=>String(n||"").trim().split(/\s+/)[0]||"";
+const lbl = (q)=>typeof q.label==="function"?q.label(A):q.label;
+const visible = ()=>Q.filter(q=>!q.show||q.show(A));
+const steps = ()=>visible().filter(q=>!["intro","review","done"].includes(q.type));
+
+function save(){ try{ localStorage.setItem(DRAFT_KEY, JSON.stringify({A,cur,t:Date.now()})); flashSaved(); }catch(e){} }
+function loadDraft(){ try{ const d=JSON.parse(localStorage.getItem(DRAFT_KEY)||"null"); return d&&d.A&&Object.keys(d.A).length?d:null; }catch(e){ return null; } }
+function clearDraft(){ try{ localStorage.removeItem(DRAFT_KEY); }catch(e){} }
+let savedT; function flashSaved(){ const s=$("#saved"); s.classList.add("on"); clearTimeout(savedT); savedT=setTimeout(()=>s.classList.remove("on"),1400); }
+function toast(t){ const el=$("#toast"); el.textContent=t; el.classList.add("on"); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove("on"),2200); }
+
+/* ===================== RENDER ===================== */
+const ICON_CHECK = '<svg class="chk" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" stroke="currentColor" stroke-width="2" fill="none"/></svg>';
+function letter(i){ return String.fromCharCode(65+i); }
+
+function render(){
+  const list = visible(); let q = list.find(x=>x.id===cur);
+  if(!q){ q=list[0]; cur=q.id; }
+  const st = steps(), idx = st.findIndex(x=>x.id===cur);
+  const total = st.length;
+  // topo
+  const count=$("#count"), fill=$("#barFill");
+  if(q.type==="intro"){ count.textContent=""; fill.style.width="0%"; }
+  else if(q.type==="review"){ count.innerHTML="Revisão"; fill.style.width="100%"; }
+  else if(q.type==="done"){ count.innerHTML="Enviado"; fill.style.width="100%"; }
+  else { count.innerHTML=`<b>${String(idx+1).padStart(2,"0")}</b> / ${String(total).padStart(2,"0")}`; fill.style.width=((idx)/total*100)+"%"; }
+  $("#backBtn").hidden = (q.type==="intro"||q.type==="done");
+
+  const el=$("#q"); el.className="q"; void el.offsetWidth; el.classList.add(dir>0?"enter":"enter-back");
+  el.innerHTML = ({intro:viewIntro,text:viewGroup,textarea:viewGroup,group:viewGroup,choice:viewChoice,multi:viewChoice,cards:viewCards,review:viewReview,done:viewDone})[q.type](q);
+  bind(q);
+  const f = el.querySelector("input,textarea");
+  if(f && matchMedia("(hover:hover)").matches) setTimeout(()=>f.focus({preventScroll:true}),80);
+  else if(q.type!=="intro") el.querySelector("h2")?.setAttribute("tabindex","-1");
+  window.scrollTo({top:0});
+}
+
+function head(q){
+  return `<span class="sec">${esc(q.sec)}</span><h2 id="qh">${esc(lbl(q))}${q.req?"":(q.type==="textarea"||q.type==="group"?"":"")}</h2>${q.help?`<p class="help">${esc(q.help)}</p>`:""}`;
+}
+function actions(q,label="OK"){
+  const kb = q.type==="textarea"||(q.type==="group"&&false) ? `<span class="hint kb"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> para continuar</span>` : `<span class="hint kb">ou aperte <kbd>Enter ↵</kbd></span>`;
+  const skip = !q.req && (q.type==="textarea"||q.type==="text"||q.type==="multi") && !hasVal(q) ? "Pular" : label;
+  return `<div class="actions"><button class="btn" type="button" data-next>${skip} <span class="arr">→</span></button>${kb}</div>`;
+}
+function hasVal(q){ const v=A[q.id]; return Array.isArray(v)?v.length>0:!!String(v||"").trim(); }
+
+function viewIntro(){
+  const d = loadDraft();
+  return `<span class="sec">Briefing de entrada · Curiosa House</span>
+  <h1>Antes da gente conversar, vamos entender o seu <em>desafio</em>.</h1>
+  <p class="lead">É bem rapidinho e deixa a nossa conversa mais produtiva. Com as suas respostas, a gente chega na reunião já sabendo onde ajudar, e o tempo juntos vira estratégia em vez de apresentação.</p>
+  <div class="intro-meta">
+    <span class="chip"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5V8l2.5 1.5"/></svg>Uns 6 minutos</span>
+    <span class="chip"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>Revisa antes de enviar</span>
+    <span class="chip"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg>Só a Curiosa lê</span>
+  </div>
+  <div class="actions"><button class="btn" type="button" data-start>${d?"Começar de novo":"Começar o briefing"} <span class="arr">→</span></button><span class="hint kb">ou aperte <kbd>Enter ↵</kbd></span></div>
+  ${d?`<div class="resume">Você já começou este briefing. <button class="linkbtn" type="button" data-resume>Continuar de onde parei</button></div>`:""}
+  ${LIVE?"":`<p class="demo">Prévia em modo demonstração: dá para percorrer tudo, mas as respostas não são enviadas.</p>`}`;
+}
+
+function fieldHTML(f,q){
+  const v = A[f.id]??"";
+  const type = f.kind==="email"?"email":f.kind==="tel"?"tel":f.kind==="date"?"date":f.kind==="url"?"url":"text";
+  const im = f.kind==="tel"?' inputmode="tel"':f.kind==="email"?' inputmode="email"':"";
+  const control = q.type==="textarea"
+    ? `<textarea id="f-${f.id}" name="${f.id}" rows="1" placeholder="${esc(f.ph||"Escreva aqui")}" aria-labelledby="qh"${f.req?' aria-required="true"':""}>${esc(v)}</textarea>`
+    : `<input id="f-${f.id}" name="${f.id}" type="${type}"${im} value="${esc(v)}" placeholder="${esc(f.ph||"")}"${f.auto?` autocomplete="${f.auto}"`:""}${f.req?' aria-required="true"':""} ${q.type==="text"?'aria-labelledby="qh"':""}>`;
+  return `<div class="field">${q.type==="group"?`<label for="f-${f.id}">${esc(f.label)}${f.req?"":'<span class="req-tag">opcional</span>'}</label>`:""}
+    <div class="inp-wrap" data-wrap="${f.id}">${f.pre?`<span class="pre">${f.pre}</span>`:""}${control}</div>
+    <p class="err" id="e-${f.id}" role="alert"></p></div>`;
+}
+function viewGroup(q){
+  const fields = q.type==="group" ? q.fields : [{id:q.id, ph:q.ph, req:q.req, auto:q.auto, kind:q.kind}];
+  return head(q)+`<div class="fields">${fields.map(f=>fieldHTML(f,q)).join("")}</div>`+actions(q);
+}
+function viewChoice(q){
+  const multi = q.type==="multi", val = A[q.id];
+  const sel = o => multi ? (val||[]).includes(o) : val===o;
+  const otherOn = q.other && sel(OUTRO);
+  return head(q)+`<div class="opts" role="${multi?"group":"radiogroup"}" aria-labelledby="qh">${q.options.map((o,i)=>
+    `<button class="opt" type="button" role="${multi?"checkbox":"radio"}" aria-checked="${sel(o)}" data-opt="${esc(o)}"><span class="k" aria-hidden="true">${letter(i)}</span><span class="t">${esc(o)}</span>${ICON_CHECK}</button>`).join("")}</div>
+  ${q.other?`<div class="other" ${otherOn?"":"hidden"} id="otherBox"><div class="fields" style="margin-top:14px"><div class="field"><div class="inp-wrap" data-wrap="${q.id}_outro"><input id="f-${q.id}_outro" type="text" placeholder="Qual?" value="${esc(A[q.id+"_outro"]||"")}" aria-label="Descreva a opção Outro"></div><p class="err" id="e-${q.id}_outro" role="alert"></p></div></div></div>`:""}
+  <p class="err" id="e-${q.id}" role="alert"></p>`+
+  ((multi||q.other) ? actions(q) : `<div class="actions"><span class="hint kb">Aperte a letra ou clique na opção</span></div>`);
+}
+function viewCards(q){
+  return head(q)+`<div class="cards" role="radiogroup" aria-labelledby="qh">${q.options.map((o,i)=>
+    `<button class="card${o.wide?" wide":""}" type="button" role="radio" aria-checked="${A[q.id]===o.v}" data-card="${o.v}"><span class="ck">${letter(i)} · ${esc(o.k)}</span><span class="ct">${esc(o.t)}</span><span class="cd">${esc(o.d)}</span></button>`).join("")}</div>
+  <p class="err" id="e-${q.id}" role="alert"></p>`;
+}
+
+function answerText(q){
+  if(q.type==="group") return null;
+  if(q.type==="cards") return INTEREST_NAME[A[q.id]]||"";
+  let v = A[q.id];
+  if(Array.isArray(v)) v = v.map(x=>x===OUTRO&&A[q.id+"_outro"]?`Outro: ${A[q.id+"_outro"]}`:x).join(", ");
+  else if(v===OUTRO && A[q.id+"_outro"]) v = `Outro: ${A[q.id+"_outro"]}`;
+  return v||"";
+}
+function fmtDate(s){ if(!/^\d{4}-\d{2}-\d{2}$/.test(s||"")) return s||""; const [y,m,d]=s.split("-"); return `${d}/${m}/${y}`; }
+function collect(){
+  const rows=[];
+  steps().forEach(q=>{
+    if(q.type==="group") q.fields.forEach(f=>{ let v=A[f.id]||""; if(f.kind==="date") v=fmtDate(v); if(f.pre&&v) v=f.pre+v.replace(/^@/,""); rows.push({sec:q.sec,id:f.id,q:f.label,a:v,step:q.id}); });
+    else rows.push({sec:q.sec,id:q.id,q:lbl(q),a:answerText(q),step:q.id});
+  });
+  return rows;
+}
+function viewReview(){
+  const rows=collect(), secs=[...new Set(rows.map(r=>r.sec))];
+  return `<span class="sec">Quase lá</span><h2 id="qh">Dá uma última olhada, ${esc(first(A.nome))}.</h2><p class="help">Se algo mudou, edite antes de enviar.</p>
+  <div class="review">${secs.map(s=>`<div class="rv-sec"><h3>${esc(s)}</h3>${rows.filter(r=>r.sec===s).map(r=>
+    `<div class="rv-row"><span class="rv-q">${esc(r.q)}</span><span class="rv-a${r.a?"":" empty"}">${esc(r.a||"Sem resposta")}</span><button class="rv-edit" type="button" data-edit="${r.step}" aria-label="Editar: ${esc(r.q)}">Editar</button></div>`).join("")}</div>`).join("")}</div>
+  <div class="actions"><button class="btn" type="button" data-send>Enviar briefing <span class="arr">→</span></button></div>
+  <p class="status" id="sendStatus" role="status" aria-live="polite"></p>`;
+}
+function viewDone(){
+  return `<div class="done-mark" aria-hidden="true"><svg viewBox="0 0 42 42" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 22l8 8 15-17"/></svg></div>
+  <span class="sec">Briefing recebido</span>
+  <h1>Briefing na <em>mesa</em>, ${esc(first(A.nome))}.</h1>
+  <p class="lead">A Jami lê tudo com calma antes de te chamar. Em até 1 dia útil você recebe uma mensagem para marcar a conversa. Uma cópia das respostas foi para ${esc(A.email||"o seu e-mail")}.</p>
+  ${LIVE?"":`<p class="demo">Modo demonstração: nada foi enviado. Com a URL do Apps Script configurada, este passo grava na planilha e dispara os e-mails.</p>`}
+  <ul class="contacts">
+    <li><div><span class="k">Se for urgente, WhatsApp</span><span class="v">${WHATS_TXT}</span></div><a class="mini" href="https://wa.me/${WHATS}" target="_blank" rel="noopener">Abrir ↗</a></li>
+    <li><div><span class="k">Instagram</span><span class="v">@curiosahouse</span></div><a class="mini" href="https://www.instagram.com/curiosahouse/" target="_blank" rel="noopener">Seguir ↗</a></li>
+  </ul>`;
+}
+
+/* ===================== INTERAÇÃO ===================== */
+function bind(q){
+  const el=$("#q");
+  el.querySelector("[data-start]")?.addEventListener("click",()=>{ A={}; clearDraft(); go(1); });
+  el.querySelector("[data-resume]")?.addEventListener("click",()=>{ const d=loadDraft(); A=d.A; cur=visible().some(x=>x.id===d.cur)?d.cur:"nome"; if(cur==="intro"||cur==="done") cur="nome"; dir=1; render(); });
+  el.querySelector("[data-next]")?.addEventListener("click",()=>next());
+  el.querySelector("[data-send]")?.addEventListener("click",send);
+  el.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>{ hist.push("review"); editReturn=true; cur=b.dataset.edit; dir=-1; render(); }));
+
+  el.querySelectorAll("input,textarea").forEach(inp=>{
+    const id=inp.id.slice(2);
+    inp.addEventListener("input",()=>{
+      if(inp.type==="tel") maskTel(inp);
+      if(id==="instagram") inp.value=inp.value.replace(/^@+/,"").replace(/\s/g,"");
+      A[id]=inp.value; clearErr(id); save();
+      if(inp.tagName==="TEXTAREA") grow(inp);
+      const nb=el.querySelector("[data-next]"); if(nb && !q.req && q.type!=="group") nb.firstChild.textContent = (hasVal(q)?"OK":"Pular")+" ";
+    });
+    if(inp.tagName==="TEXTAREA") grow(inp);
+  });
+  el.querySelectorAll("[data-opt]").forEach(b=>b.addEventListener("click",()=>pick(q,b.dataset.opt,b)));
+  el.querySelectorAll("[data-card]").forEach(b=>b.addEventListener("click",()=>{
+    A[q.id]=b.dataset.card; save();
+    el.querySelectorAll("[data-card]").forEach(c=>c.setAttribute("aria-checked",c===b));
+    setTimeout(()=>next(),280);
+  }));
+}
+function grow(t){ t.style.height="auto"; t.style.height=Math.min(t.scrollHeight,320)+"px"; t.style.overflow=t.scrollHeight>320?"auto":"hidden"; }
+function maskTel(i){ let d=i.value.replace(/\D/g,"").slice(0,11);
+  i.value = d.length>6?`(${d.slice(0,2)}) ${d.slice(2,d.length-4)}-${d.slice(-4)}`:d.length>2?`(${d.slice(0,2)}) ${d.slice(2)}`:d; }
+
+function pick(q,o,btn){
+  const el=$("#q");
+  if(q.type==="multi"){
+    let v=[...(A[q.id]||[])];
+    if(v.includes(o)) v=v.filter(x=>x!==o);
+    else { if(q.none===o) v=[o]; else { v=v.filter(x=>x!==q.none); v.push(o); } }
+    A[q.id]=v;
+    el.querySelectorAll("[data-opt]").forEach(b=>b.setAttribute("aria-checked",v.includes(b.dataset.opt)));
+    const nb=el.querySelector("[data-next]"); if(nb && !q.req) nb.firstChild.textContent=(v.length?"OK":"Pular")+" ";
+  } else {
+    A[q.id]=o;
+    el.querySelectorAll("[data-opt]").forEach(b=>b.setAttribute("aria-checked",b.dataset.opt===o));
+  }
+  clearErr(q.id); save();
+  btn.classList.remove("flash"); void btn.offsetWidth; btn.classList.add("flash");
+  const box=$("#otherBox");
+  if(box){ const on = q.type==="multi"?(A[q.id]||[]).includes(OUTRO):A[q.id]===OUTRO; box.hidden=!on; if(on){ setTimeout(()=>$("#f-"+q.id+"_outro")?.focus(),60); return; } }
+  if(q.type==="choice") setTimeout(()=>next(),300);
+}
+
+function setErr(id,msg){ const e=$("#e-"+id); if(e) e.textContent=msg; $(`[data-wrap="${id}"]`)?.classList.add("bad"); }
+function clearErr(id){ const e=$("#e-"+id); if(e) e.textContent=""; $(`[data-wrap="${id}"]`)?.classList.remove("bad"); }
+
+function validate(q){
+  let ok=true, firstBad=null;
+  const need=(id,msg)=>{ ok=false; setErr(id,msg); firstBad=firstBad||id; };
+  if(q.type==="group"||q.type==="text"||q.type==="textarea"){
+    const fields=q.type==="group"?q.fields:[{id:q.id,req:q.req,kind:q.kind}];
+    fields.forEach(f=>{
+      const v=String(A[f.id]||"").trim();
+      if(f.req && !v) return need(f.id, f.kind==="date"?"Escolha a data de início.":"Esse campo ajuda muito a gente. Preencha para seguir.");
+      if(v && f.kind==="email" && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return need(f.id,"Esse e-mail parece incompleto. Confira se tem @ e domínio, como voce@empresa.com.");
+      if(v && f.kind==="tel" && v.replace(/\D/g,"").length<10) return need(f.id,"Coloque o número com DDD, como (19) 90000-0000.");
+    });
+  } else if(q.type==="choice"||q.type==="multi"||q.type==="cards"){
+    const v=A[q.id];
+    if(q.req && (!v || (Array.isArray(v)&&!v.length))) need(q.id, q.type==="multi"?"Marque pelo menos uma opção.":"Escolha uma opção para seguir.");
+    const otherOn = q.other && (Array.isArray(v)?v.includes(OUTRO):v===OUTRO);
+    if(ok && otherOn && !String(A[q.id+"_outro"]||"").trim()) need(q.id+"_outro","Conta rapidinho qual é.");
+  }
+  if(firstBad) $("#f-"+firstBad)?.focus();
+  return ok;
+}
+
+let editReturn=false;
+function go(d){
+  const list=visible(), i=list.findIndex(x=>x.id===cur);
+  const n=list[i+d]; if(!n) return;
+  if(d>0) hist.push(cur);
+  cur=n.id; dir=d; save(); render();
+}
+function next(){
+  const q=visible().find(x=>x.id===cur);
+  if(!validate(q)) return;
+  if(editReturn){
+    // volta para a revisão, a não ser que a edição tenha aberto perguntas novas ainda sem resposta
+    const pending = steps().find(s=>s.req && !answered(s));
+    if(!pending){ editReturn=false; cur="review"; dir=1; save(); render(); return; }
+    cur=pending.id; dir=1; save(); render(); return;
+  }
+  go(1);
+}
+function answered(s){
+  if(s.type==="group") return s.fields.every(f=>!f.req||String(A[f.id]||"").trim());
+  const v=A[s.id]; return Array.isArray(v)?v.length>0:!!String(v||"").trim();
+}
+function back(){
+  if(editReturn){ editReturn=false; cur="review"; dir=-1; render(); return; }
+  const list=visible(), i=list.findIndex(x=>x.id===cur);
+  if(i>0){ cur=list[i-1].id; dir=-1; save(); render(); }
+}
+$("#backBtn").addEventListener("click",back);
+
+document.addEventListener("keydown",e=>{
+  const q=visible().find(x=>x.id===cur); if(!q) return;
+  const tag=(e.target.tagName||"").toLowerCase();
+  if(e.key==="Enter"){
+    if(tag==="textarea"){ if(e.ctrlKey||e.metaKey){ e.preventDefault(); next(); } return; }
+    if(tag==="button") return;
+    if(q.type==="intro"){ e.preventDefault(); $("[data-start]")?.click(); return; }
+    if(q.type==="review"||q.type==="done") return;
+    e.preventDefault(); next(); return;
+  }
+  if(tag==="input"||tag==="textarea"||e.ctrlKey||e.metaKey||e.altKey) return;
+  if(/^[a-z]$/i.test(e.key)){
+    const i=e.key.toUpperCase().charCodeAt(0)-65;
+    if(q.type==="cards"&&q.options[i]) $(`[data-card="${q.options[i].v}"]`)?.click();
+    else if((q.type==="choice"||q.type==="multi")&&q.options[i]) $(`[data-opt="${CSS.escape(q.options[i])}"]`)?.click();
+  }
+});
+
+/* ===================== ENVIO ===================== */
+async function send(){
+  const btn=$("[data-send]"), st=$("#sendStatus");
+  const missing = steps().find(s=>s.req && !answered(s));
+  if(missing){ st.textContent="Faltou uma resposta obrigatória. Vou te levar até ela."; setTimeout(()=>{ editReturn=true; cur=missing.id; dir=-1; render(); },900); return; }
+  const rows=collect();
+  const campos = {
+    nome:A.nome, email:A.email, whatsapp:A.whatsapp, empresa:A.empresa, cargo:A.cargo||"", segmento:A.segmento||"",
+    instagram:A.instagram?"@"+A.instagram:"", site:A.site||"", outros_perfis:A.outros_perfis||"",
+    origem:answerText(Q.find(x=>x.id==="origem")), interesse:A.interesse, interesse_nome:INTEREST_NAME[A.interesse]||"",
+    prazo:A.f_prazo, investimento:A.f_invest, decisor:A.f_decisor, sucesso:A.f_sucesso||"",
+    ev_nome:A.ev_nome||"", ev_data:A.ev_data||"", ev_local:A.ev_local||"", ev_tipo:A.ev_tipo||"", ev_qtd:A.ev_qtd||"", ev_edicao:A.ev_edicao||"", ev_fases:(A.ev_fases||[]).join(", "), ev_pronto:(A.ev_pronto||[]).join(", "),
+    m_medicao:A.m_medicao||"", m_dor:A.m_dor||"", m_quem:A.m_quem||"", m_momento:A.m_momento||"",
+    c_objetivo:A.c_objetivo||"", c_ideia:A.c_ideia||"", c_periodo:A.c_periodo||"",
+    g_estagio:A.g_estagio||"", g_data:A.g_data||"", g_mercado:A.g_mercado||"", g_tem:(A.g_tem||[]).join(", ")
+  };
+  const p=new URLSearchParams(location.search), utm={};
+  ["utm_source","utm_medium","utm_campaign","utm_content"].forEach(k=>utm[k]=p.get(k)||"");
+  const payload={campos, respostas:rows.map(({sec,q,a})=>({sec,q,a})), utm, pagina:location.href.split("#")[0], enviado_em:new Date().toISOString()};
+
+  btn.disabled=true; btn.firstChild.textContent="Enviando... "; st.textContent="";
+  try{
+    if(LIVE){
+      const body=new URLSearchParams(); body.append("payload",JSON.stringify(payload));
+      await fetch(ENDPOINT,{method:"POST",mode:"no-cors",body});
+    } else { await new Promise(r=>setTimeout(r,700)); console.info("[modo demonstração] payload", payload); }
+    clearDraft(); cur="done"; dir=1; render();
+    if(window.gtag) gtag("event","generate_lead",{interesse:A.interesse});
+    if(window.fbq) fbq("track","Lead");
+  }catch(err){
+    const txt=encodeURIComponent(`Olá, Curiosa! Sou ${A.nome} da ${A.empresa}. Tentei enviar o briefing pelo site sobre: ${INTEREST_NAME[A.interesse]}.`);
+    st.innerHTML=`Não conseguimos enviar agora. Suas respostas continuam salvas neste aparelho. Tente de novo em instantes ou chame no <a href="https://wa.me/${WHATS}?text=${txt}" target="_blank" rel="noopener">WhatsApp ${WHATS_TXT}</a>.`;
+    btn.disabled=false; btn.firstChild.textContent="Tentar de novo ";
+  }
+}
+
+/* ===================== START ===================== */
+render();
+</script>
+
+</html>
